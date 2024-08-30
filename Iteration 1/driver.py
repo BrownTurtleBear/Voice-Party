@@ -8,7 +8,7 @@ pygame.init()
 # Set up the display
 width, height = 800, 600
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Microphone Input Example")
+pygame.display.set_caption("Microphone Input Example - Iteration 1")
 
 # Colors
 BLACK = (0, 0, 0)

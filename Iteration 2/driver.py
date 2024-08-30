@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Voice Party")
+pygame.display.set_caption("Voice Party - Iteration 2")
 
 MENU = 0
 ROCKET = 1

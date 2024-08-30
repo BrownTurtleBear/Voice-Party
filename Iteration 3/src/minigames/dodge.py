@@ -1,7 +1,7 @@
-import pygame
 import sys
-from input.microphone import *
+
 from elements.text import Text
+from input.microphone import *
 
 
 def run(screen):
