@@ -1,1 +1,1 @@
-__all__ = ["baseSprite", "sprites"]
+__all__ = ["baseSprite", "sprites", "spriteSheet"]

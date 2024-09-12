@@ -37,6 +37,18 @@ class Camera(pygame.sprite.Group):
         if target.rect.bottom > self.camera_rect.bottom:
             self.camera_rect.bottom = target.rect.bottom
 
+        # Constrain camera position horizontally
+        if self.camera_rect.left < -1800:
+            self.camera_rect.left = -1800
+        if self.camera_rect.right > 1800:
+            self.camera_rect.right = 1800
+
+        # Constrain camera position vertically
+        if self.camera_rect.top < -1800:
+            self.camera_rect.top = -1800
+        if self.camera_rect.bottom > 1800:
+            self.camera_rect.bottom = 1800
+
         self.offset.x = self.camera_rect.left - self.camera_boarders["left"]
         self.offset.y = self.camera_rect.top - self.camera_boarders["top"]
 
@@ -55,4 +67,3 @@ class Camera(pygame.sprite.Group):
         for sprite in self.sprites():
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_pos)
-
