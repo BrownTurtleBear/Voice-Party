@@ -1,6 +1,7 @@
 import pygame
 import sys
 from src.input.microphone_input import MicrophoneInput
+from time import perf_counter
 
 # Initialize Pygame
 pygame.init()
@@ -20,7 +21,7 @@ circle_x, circle_y = width // 2, height // 2
 min_radius, max_radius = 20, 1000
 
 # Initialize MicrophoneInput
-mic_input = MicrophoneInput(update_frequency=0.0233)
+mic_input = MicrophoneInput()
 
 # Main game loop
 clock = pygame.time.Clock()
@@ -30,8 +31,8 @@ try:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise KeyboardInterrupt
-            elif event.type == pygame.USEREVENT + 1:
-                mic_input.update()
+
+        mic_input.update()
 
         # Clear the screen
         screen.fill(BLACK)

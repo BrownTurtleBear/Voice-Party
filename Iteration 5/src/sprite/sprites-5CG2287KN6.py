@@ -114,20 +114,25 @@ class AsteroidSprite(BaseSprite):
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, angle):
         super().__init__()
-        # Load the original bullet image
-        load_image = pygame.image.load("assets/rocket/images/bullets.png").convert_alpha()
-        scaled_image = pygame.transform.scale(load_image, (128, 128))
-        self.original_image = pygame.transform.rotate(scaled_image, angle)
-        self.image = self.original_image  # Start with the normal image
+        image_path = os.path.join("assets", "rocket", "images", "bullets.png")
+        try:
+            self.image = pygame.image.load(image_path).convert_alpha()
+            self.image = pygame.transform.scale(self.image, (128, 128))
+            self.image = pygame.transform.rotate(self.image, angle)
+        except pygame.error as e:
+            print(f"Failed to load bullet image: {e}")
+            self.image = pygame.Surface((64, 64), pygame.SRCALPHA)
+            self.image.fill((255, 0, 0))
+
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 10
         self.angle = angle
+        self.angle_rad = math.radians(self.angle)
+        starting = pygame.math.Vector2(2 * math.sin(self.angle_rad), 2 * math.cos(self.angle_rad))
         self.pos = pygame.math.Vector2(x, y)
 
     def update(self):
-        # Movement logic remains the same
-        angle_rad = math.radians(self.angle)
-        movement = pygame.math.Vector2(-self.speed * math.sin(angle_rad), -self.speed * math.cos(angle_rad))
+        movement = pygame.math.Vector2(-self.speed * math.sin(self.angle_rad), -self.speed * math.cos(self.angle_rad))
         self.pos += movement
         self.rect.center = self.pos
 
@@ -136,64 +141,26 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
-def is_in_viewport(screen_pos, screen_width, screen_height):
-    margin = 100  # Margin around the screen to keep bullets visible when near the edge
-    return (-margin < screen_pos[0] < screen_width + margin and
-            -margin < screen_pos[1] < screen_height + margin)
-
-
-def draw_normal_bullet(surface, bullet, screen_pos):
-    surface.blit(bullet.original_image, screen_pos)
-
-
-def draw_debug_bullet(surface, bullet, screen_pos):
-    small_font = pygame.font.Font(None, 20)
-
-    # Draw green debug circle
-    debug_bullet_surface = pygame.Surface((64, 64), pygame.SRCALPHA)
-    pygame.draw.circle(debug_bullet_surface, (0, 255, 0), (32, 32), 10)
-    surface.blit(debug_bullet_surface, screen_pos)
-
-    # Display bullet position
-    x_pos, y_pos = round(bullet.pos.x), round(bullet.pos.y)
-    position_text = small_font.render(f"({x_pos}, {y_pos})", True, (255, 255, 255))
-    text_pos = (screen_pos[0] + 20, screen_pos[1] - 10)
-    surface.blit(position_text, text_pos)
-
-
 class BulletManager(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
         self.camera_offset = pygame.math.Vector2(0, 0)
 
     def shoot(self, x, y, angle):
-        bullet_offset_distance = 40
-
-        angle_rad = math.radians(angle)
-
-        bullet_x = x - bullet_offset_distance * math.sin(angle_rad)
-        bullet_y = y - bullet_offset_distance * math.cos(angle_rad)
-
-        new_bullet = Bullet(bullet_x, bullet_y, angle)
+        new_bullet = Bullet(x, y, angle)
         self.add(new_bullet)
+        # print(f"New bullet added to manager. Total bullets: {len(self.sprites())}")
 
     def update(self):
         for bullet in self.sprites():
             bullet.update()
         # print(f"BulletManager updated. Total bullets: {len(self.sprites())}")
 
-    def draw(self, surface, debug_mode=False):
-        screen_width, screen_height = surface.get_size()
-
+    def draw(self, surface):
         for bullet in self.sprites():
             screen_pos = bullet.rect.topleft - self.camera_offset
-
-            # Only draw if the bullet is within the screen bounds (with margin)
-            if is_in_viewport(screen_pos, screen_width, screen_height):
-                if debug_mode:
-                    draw_debug_bullet(surface, bullet, screen_pos)
-                else:
-                    draw_normal_bullet(surface, bullet, screen_pos)
+            surface.blit(bullet.image, screen_pos)
+        # print(f"BulletManager drew {len(self.sprites())} bullets")
 
     def set_camera_offset(self, offset):
         self.camera_offset = offset

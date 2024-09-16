@@ -18,7 +18,7 @@ MAX_SPEED = 7
 
 # Setup
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Rocket Game - Iteration 4")
+pygame.display.set_caption("Rocket Game - Iteration 5")
 clock = pygame.time.Clock()
 
 # Initialize game components
@@ -40,6 +40,7 @@ debug_mode = False
 # Helper functions
 def handle_input():
     global speed, running
+    volume = mic_input.get_volume()
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         rocket.rotate_left()
@@ -49,7 +50,11 @@ def handle_input():
         speed += SPEED_INCREMENT
     if keys[pygame.K_s]:
         speed -= SPEED_INCREMENT
-    speed = max(MIN_SPEED, min(speed, MAX_SPEED))  # Constrain speed
+    if volume > 3000:
+        bullet_manager.shoot(rocket.rect.centerx, rocket.rect.centery, rocket.angle)
+    print(volume)
+    speed = volume * 0.007
+    speed = max(MIN_SPEED, min(speed, MAX_SPEED))
 
 
 def toggle_debug(board):
@@ -93,8 +98,7 @@ while running:
             elif event.key == pygame.K_F3:
                 debug_mode = not debug_mode
 
-    if (perf_counter()-start) % 0.1 <= 0.01:
-        mic_input.update()
+    mic_input.update()
 
     # Handle input
     handle_input()
@@ -115,10 +119,6 @@ while running:
 
     if debug_mode:
         draw_debug_info()
-
-    fps = clock.get_fps()
-    fps_text = debug_font.render(f"FPS: {int(fps)}", True, (255, 255, 255))
-    screen.blit(fps_text, (10, 100))
 
     pygame.display.flip()
     clock.tick(FPS)
