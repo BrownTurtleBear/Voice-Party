@@ -4,6 +4,7 @@ from input.microphone import MicrophoneInput
 from sprite.sprites import RocketSprite, BulletManager
 from view.gamecams import RocketCamera
 from time import perf_counter
+import time
 
 pygame.init()
 
@@ -37,23 +38,32 @@ debug_font = pygame.font.Font(None, 36)
 debug_mode = False
 
 
-# Helper functions
+last_shoot_time = 0
+
+
 def handle_input():
-    global speed, running
+    global speed, last_shoot_time
     volume = mic_input.get_volume()
     keys = pygame.key.get_pressed()
+    current_time = time.time()
+
     if keys[pygame.K_LEFT]:
         rocket.rotate_left()
     if keys[pygame.K_RIGHT]:
         rocket.rotate_right()
-    if keys[pygame.K_w]:
-        speed += SPEED_INCREMENT
-    if keys[pygame.K_s]:
-        speed -= SPEED_INCREMENT
-    if volume > 3000:
-        bullet_manager.shoot(rocket.rect.centerx, rocket.rect.centery, rocket.angle)
-    print(volume)
-    speed = volume * 0.007
+
+    if debug_mode:
+        if keys[pygame.K_w]:
+            speed += SPEED_INCREMENT
+        if keys[pygame.K_s]:
+            speed -= SPEED_INCREMENT
+    else:
+        if volume > 3000 and current_time - last_shoot_time >= 0.5:  # bullet cooldown
+            bullet_manager.shoot(rocket.rect.centerx, rocket.rect.centery, rocket.angle)
+            last_shoot_time = current_time
+        print(volume)
+
+    speed = volume * 0.0028
     speed = max(MIN_SPEED, min(speed, MAX_SPEED))
 
 
