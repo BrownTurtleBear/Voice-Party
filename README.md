@@ -1,21 +1,7 @@
 # Voice Party
-A game full of mini games centred around using your microphone as the input.
+A game full of mini-games centred around using your microphone as the input.
 
-## Iteration 1
-Microphone usage. Gives a variable for the volume. 
-
-## Iteration 2
-Minigame functionality
-
-UI
-- Text
-- Text Buttons
-  
-Rocket game
-- Movement
-- Animation
-- Keep rocket in frame
-
-## Iteration 3
-Camera
-Asteroids
+## How to play
+ - Use left and right arrow keys to turn
+ - Use your voice to control speed. The higher the volume, the faster you move.
+ - Scream to shoot. 

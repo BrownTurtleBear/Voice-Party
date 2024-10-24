@@ -73,45 +73,6 @@ class RocketSprite(BaseSprite):
         return rocket_speed
 
 
-class AsteroidSprite(BaseSprite):
-    def __init__(self, x, y, image):
-        super().__init__(x, y, image)
-        self.image = pygame.image.load("assets/rocket/images/asteroid.png").convert_alpha()
-        self.sheet = SpriteSheet(self.image)
-        self.current_frame = 0
-        self.frames = [self.sheet.get_image(frame, 16, 16, 3) for frame in range(8)]
-        asteroid = self.frames[self.current_frame]
-        asteroid = pygame.transform.scale(asteroid, (
-            int(asteroid.get_width() * 1.3), int(asteroid.get_height() * 1.3)))
-
-        self.image = asteroid
-        self.rect = self.image.get_rect()
-        self.true_pos = pygame.math.Vector2(self.rect.x, self.rect.y)
-        self.rect.center = self.true_pos
-
-        self.collision = True
-
-        self.rotation = 0
-        self.rotation_type = random.choice(["Clockwise", "Anti-Clockwise"])
-        self.rotation_speed = random.uniform(0.5, 2)
-
-        self.speed = random.uniform(0.5, 3)
-
-    def rotate(self):
-        if self.rotation_type == "Clockwise":
-            self.rotation += self.rotation_speed
-        else:
-            self.rotation -= self.rotation_speed
-
-        self.image = pygame.transform.rotate(self.frames[self.current_frame], self.rotation)
-        self.rect = self.image.get_rect(center=self.rect.center)
-
-    def update(self, camera_offset):
-        self.rotate()
-
-        self.rect.center = self.true_pos - camera_offset
-
-
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, angle):
         super().__init__()
@@ -195,6 +156,86 @@ class BulletManager(pygame.sprite.Group):
                     draw_debug_bullet(surface, bullet, screen_pos)
                 else:
                     draw_normal_bullet(surface, bullet, screen_pos)
+
+    def set_camera_offset(self, offset):
+        self.camera_offset = offset
+
+
+class Asteroid(pygame.sprite.Sprite):
+    def __init__(self, x, y, angle, rotation_speed):
+        super().__init__()
+        self.spritesheet = SpriteSheet(pygame.image.load("assets/rocket/images/asteroid.png").convert_alpha())
+        self.frames = []
+        self.load_frames()
+        self.current_frame = 0
+        self.image = self.frames[self.current_frame]
+        self.rect = self.image.get_rect(center=(x, y))
+        self.movement_angle = angle
+        self.rotation_angle = 0
+        self.angle = angle
+        self.rotation_speed = rotation_speed
+        self.speed = random.uniform(3, 10)
+        self.animation_speed = 0.2
+        self.last_update = time.time()
+
+    def load_frames(self):
+        for i in range(8):  # Assuming 16 frames
+            self.frames.append(self.spritesheet.get_image(i, 16, 16, 4))
+
+    def update(self):
+        # Move the asteroid in a straight line
+        self.rect.x += self.speed * math.cos(math.radians(self.movement_angle))
+        self.rect.y += self.speed * math.sin(math.radians(self.movement_angle))
+
+        # Rotate the asteroid visually
+        self.rotation_angle += self.rotation_speed
+        self.rotation_angle %= 360  # Keep the angle between 0 and 359
+
+        # Apply rotation to the current frame
+        self.rotate()
+
+    def rotate(self):
+        # Rotate the current frame
+        rotated_image = pygame.transform.rotate(self.frames[self.current_frame], self.rotation_angle)
+        # Get the new rect and keep the center at the same position
+        self.rect = rotated_image.get_rect(center=self.rect.center)
+        self.image = rotated_image
+
+
+class AsteroidManager(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+        self.camera_offset = pygame.math.Vector2(0, 0)
+        self.last_spawn_time = 0
+        self.spawn_interval = 1
+        self.spawn_area = (2000, 2000)
+
+    def spawn(self):
+        asteroid_x = random.randint(0, self.spawn_area[0])
+        asteroid_y = random.randint(0, self.spawn_area[1])
+        angle = random.uniform(0, 360)
+        rotation_speed = random.choice([-1, 1]) * random.uniform(0.5, 2)
+
+        new_asteroid = Asteroid(asteroid_x, asteroid_y, angle, rotation_speed)
+        self.add(new_asteroid)
+
+    def update(self):
+        current_time = time.time()
+        if current_time - self.last_spawn_time >= self.spawn_interval:
+            self.spawn()
+            self.last_spawn_time = current_time
+
+        for asteroid in self.sprites():
+            asteroid.update()
+
+    def draw(self, surface):
+        screen_width, screen_height = surface.get_size()
+
+        for asteroid in self.sprites():
+            screen_pos = asteroid.rect.topleft - self.camera_offset
+
+            if is_in_viewport(screen_pos, screen_width, screen_height):
+                surface.blit(asteroid.image, screen_pos)
 
     def set_camera_offset(self, offset):
         self.camera_offset = offset

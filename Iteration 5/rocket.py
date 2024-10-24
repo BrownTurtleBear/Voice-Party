@@ -1,7 +1,7 @@
 import sys
 import pygame
 from input.microphone import MicrophoneInput
-from sprite.sprites import RocketSprite, BulletManager
+from sprite.sprites import RocketSprite, BulletManager, AsteroidManager
 from view.gamecams import RocketCamera
 from time import perf_counter
 import time
@@ -9,7 +9,7 @@ import time
 pygame.init()
 
 # Constants
-SCREEN_WIDTH = 1280
+SCREEN_WIDTH = 1280 
 SCREEN_HEIGHT = 720
 FPS = 60
 INITIAL_SPEED = 0
@@ -27,6 +27,7 @@ speed = INITIAL_SPEED
 mic_input = MicrophoneInput()
 rocket = RocketSprite()
 bullet_manager = BulletManager()
+asteroid_manager = AsteroidManager()
 camera = RocketCamera()
 
 # Add rocket and bullet manager to camera
@@ -117,8 +118,10 @@ while running:
     speed = rocket.move(speed)
     camera.update()
     bullet_manager.update()
+    asteroid_manager.update()
 
     bullet_manager.set_camera_offset(camera.offset)
+    asteroid_manager.set_camera_offset(camera.offset)
 
     screen.fill((0, 0, 0))
 
@@ -126,6 +129,7 @@ while running:
     camera.custom_draw(rocket)
 
     bullet_manager.draw(screen, debug_mode)
+    asteroid_manager.draw(screen)
 
     if debug_mode:
         draw_debug_info()

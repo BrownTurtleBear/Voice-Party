@@ -1,7 +1,6 @@
 import pygame
 import sys
 from src.input.microphone_input import MicrophoneInput
-from time import perf_counter
 
 # Initialize Pygame
 pygame.init()
